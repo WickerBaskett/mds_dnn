@@ -9,16 +9,18 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-#################################
-#  Generate Graph to be Solved  #
-#################################
+##############################
+#  Input and Output Options  #
+##############################
 
-# Set this to true to print Theta values
+# Determines wether to print theta vector
 print_theta = False
 
-# To solve a new graph change this!
-g = nx.connected_caveman_graph(5, 5)
+# Determines whether or not to display a visual graph
+display_graph = True
 
+# To solve a new graph change this!
+g = nx.cycle_graph(10)
 
 #################################
 #  Setup pytorch model for dNN  #
@@ -48,7 +50,7 @@ output = model(x)
 ####################
 
 print("\n******************************  RESULTS  ******************************\n")
-print("dNN Output: " + str(output.data[0, 0].item()))
+print("dNN Output:\t" + str(output.data[0, 0].item()))
 
 # Get theta values
 thetas = []
@@ -73,8 +75,10 @@ print("n:\t\t" + str(n))
 print("\n***********************************************************************\n")
 
 # Draw the graph
-pos = nx.planar_layout(g)
-nx.draw_networkx_nodes(g, pos, nodelist=S, node_color="tab:red")
-nx.draw_networkx_nodes(g, pos, nodelist=S_not, node_color="tab:blue")
-nx.draw_networkx_edges(g, pos)
-plt.show()
+
+if display_graph:
+    pos = nx.planar_layout(g)
+    nx.draw_networkx_nodes(g, pos, nodelist=S, node_color="tab:red")
+    nx.draw_networkx_nodes(g, pos, nodelist=S_not, node_color="tab:blue")
+    nx.draw_networkx_edges(g, pos)
+    plt.show()
