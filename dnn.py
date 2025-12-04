@@ -60,7 +60,7 @@ class Hadamard(nn.Module):
 
 class Binary_Matrix(nn.Module):
     """
-    Multiply by the binary matrix, this returns a n+m x 1 tensor
+    Multiply by the binary matrix, this returns a 2n x 1 tensor
     """
     def __init__(self, W, b):
         super().__init__()
@@ -89,7 +89,7 @@ class MDS(nn.Module):
     the Minimum Dominating Set problem
     """
 
-    def __init__(self, graph: nx.graph):
+    def __init__(self, graph: nx.Graph):
         super().__init__()
 
         ###############################
@@ -99,8 +99,6 @@ class MDS(nn.Module):
         # Store infromation about the graph
         self.G = graph
         self.n = self.G.number_of_nodes()
-        self.m = self.G.number_of_edges()
-        
 
         # Binary Matrix: First nxn is diagonal matrix
         #   second nxm has columns representing edges, 
@@ -108,7 +106,7 @@ class MDS(nn.Module):
         #   for the vertices associated with this edge and 
         #   everything else should be zero
         wshape = (self.n, 2 * self.n)
-        self.W = torch.zeros(wshape)
+        self.W = torch.zeros(self.n, 2 * self.n)
         
         for i in range(0, self.n):
             self.W[i, i] = -1
@@ -118,15 +116,11 @@ class MDS(nn.Module):
             for neigh in  self.G.neighbors(node):
                 self.W[neigh, self.n + node] = -1
 
-        print("Binary Matrix: \n" + str(self.W))
-
         # Bias Vector: First n are 1/2 second n are 1
-        self.b = torch.ones(2*  self.n, 1)
+        self.b = torch.ones(2 * self.n, 1)
 
         for i in range(0, self.n):
             self.b[i] = 1/2
-
-        print("Bias Vector:\n" + str(self.b))
 
         # Fully connected weight vector first n are -1, second n are -n
         self.w = torch.zeros(2 * self.n, 1)
@@ -136,8 +130,6 @@ class MDS(nn.Module):
         
         for j in range(self.n, 2 * self.n):
             self.w[j] = self.n
-
-        print("Connected Weight Vector: \n" + str(self.w))
 
         ##################
         #  Setup Layers  #

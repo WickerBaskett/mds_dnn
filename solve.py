@@ -43,7 +43,7 @@ output = model(x)
 #  Display Results #
 ####################
 
-print("\n\n\n******************************  RESULTS  ******************************\n")
+print("\n******************************  RESULTS  ******************************\n")
 print("dNN Output: " + str(output.data[0, 0].item()))
 
 # Get theta values
@@ -64,8 +64,9 @@ for i in range(0, len(thetas)):
     else:
         S_not.append(i)
 
-print("k: \t\t" + str(k))
-
+print("k:\t\t" + str(k))
+print("n:\t\t" + str(n))
+print("\n***********************************************************************\n")
 
 # Draw the graph
 pos = nx.planar_layout(g)
