@@ -1,12 +1,19 @@
 import torch
 from torch import nn
 import networkx as nx
+from networkx import Graph
 
 # Acknowledgments:
 # Implementation of this was heavily inspired by the work of itsazibfarooq 
 # who has published an implemntation of many dNN's on GitHub: 
 #       https://github.com/itsazibfarooq/dataless
 
+def heuristic(G):
+    n = G.number_of_nodes()
+    theta = torch.zeros(n)
+    #deg = 
+    while n != 0:
+        pass
 
 class Hadamard(nn.Module):
     """
@@ -15,7 +22,7 @@ class Hadamard(nn.Module):
     """
     def __init__(self, n):
         super().__init__()
-        self.theta = nn.Parameter(torch.zeros(n, 1), requires_grad=True)
+        self.theta = nn.Parameter(torch.rand(n, 1) * (0.95 - 0.05) + 0.05, requires_grad=True)
         self.min_theta = 0
         self.max_theta = 1
 
@@ -73,38 +80,37 @@ class MDS(nn.Module):
         #   for each column there should be exactly 2 ones
         #   for the vertices associated with this edge and 
         #   everything else should be zero
-        wshape = (self.n, self.n + self.m)
+        wshape = (self.n, 2 * self.n)
         self.W = torch.zeros(wshape)
         
         for i in range(0, self.n):
-            self.W[i, i] = 1
+            self.W[i, i] = -1
 
-        count = 0
-        for j in self.G.edges():
-            self.W[j[0], self.n + count] = 1
-            self.W[j[1], self.n + count] = 1
-            count += 1
+        for node in self.G.nodes():
+            self.W[node, self.n + node] = -1
+            for neigh in  self.G.neighbors(node):
+                self.W[neigh, self.n + node] = -1
 
-        print(self.W)
+        print("Binary Matrix: \n" + str(self.W))
 
         # Bias Vector: First n are 1/2 second n are 1
-        self.b = torch.ones(self.m + self.n, 1)
+        self.b = torch.ones(2*  self.n, 1)
 
         for i in range(0, self.n):
             self.b[i] = 1/2
 
-        print(self.b)
+        print("Bias Vector:\n" + str(self.b))
 
         # Fully connected weight vector first n are -1, second n are -n
-        self.w = torch.zeros(self.m + self.n, 1)
+        self.w = torch.zeros(2 * self.n, 1)
 
         for i in range(0, self.n):
             self.w[i] = -1
         
-        for j in range(self.n, self.m + self.n):
+        for j in range(self.n, 2 * self.n):
             self.w[j] = self.n
 
-        print(self.w)
+        print("Connected Weight Vector: \n" + str(self.w))
 
         ##################
         #  Setup Layers  #
@@ -128,14 +134,14 @@ class MDS(nn.Module):
         self.layer4 = Weight_Vec(self.w)
 
     def forward(self, x):
-        print("\n\n******************\n")
+        #print("\n\n******************\n")
         x = self.layer1(x)
-        print("Hadamard: " + str(x))
+        #print("Hadamard: " + str(x))
         x = self.layer2(x)
-        print("Binary Matrix: " + str(x))
+        #print("Binary Matrix: " + str(x))
         x = self.layer3(x)
-        print("ReLU: " + str(x))
+        #print("ReLU: " + str(x))
         x = self.layer4(x)
-        print("Weight Vec: " + str(x))
+        #print("Weight Vec: " + str(x))
         return x
 

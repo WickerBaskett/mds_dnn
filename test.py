@@ -7,7 +7,6 @@ import torch.optim as optim
 
 g = nx.Graph()
 
-
 # Dominating set: {2, 5}
 g.add_edge(0, 1)
 g.add_edge(1, 2)
@@ -24,25 +23,38 @@ model = MDS(g).to(device)
 x = torch.ones(n, 1)
 
 # Define minimum possible value for MDS dnn output
+k = 2 # Best geuss at MDS size
 goal = torch.zeros(1,1)
-goal[0, 0] = -((n - 2)/2)
+goal[0, 0] = -(n - k)/2
 
 # Define the loss function
-criterion = nn.MSELoss()
+loss_fn = lambda predicted, desired: predicted - desired
 
 # Initialize the Adam optimizer
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-# Sample training loop
-for epoch in range(10):
+for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)
+                last = param.clone()
+# Training loop
+for epoch in range(50000):
     optimizer.zero_grad()  # Clear previous gradients
     output = model(x)  # Forward pass
-    loss = criterion(output, goal)  # Compute loss
+    loss = loss_fn(output, goal)  # Compute loss
     loss.backward()  # Backward pass
     optimizer.step()  # Update parameters
 
+    if epoch % 5000 == 0:
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print("******************* EPOCH " + str(epoch) + "*******************")
+                print(param.data - last.data)
+                print("Loss: " + str(loss))
+                last = param.clone()
+
+
 print("\n\n\n******************************\n\n RESULTS:\n")
-print(output)
 
 ################################
 #  Display results on a graph  #
@@ -57,7 +69,7 @@ for name, param in model.named_parameters():
 S = []
 S_not = []
 for i in range(0, len(thetas)):
-    if thetas[i] >= 1:
+    if thetas[i] >= 0.99:
         S.append(i)
     else:
         S_not.append(i)
