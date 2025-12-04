@@ -20,7 +20,7 @@ print_theta = False
 display_graph = True
 
 # To solve a new graph change this!
-g = nx.cycle_graph(10)
+g = nx.gnp_random_graph(10, 0.5)
 
 #################################
 #  Setup pytorch model for dNN  #
@@ -77,7 +77,7 @@ print("\n***********************************************************************
 # Draw the graph
 
 if display_graph:
-    pos = nx.planar_layout(g)
+    pos = nx.shell_layout(g)
     nx.draw_networkx_nodes(g, pos, nodelist=S, node_color="tab:red")
     nx.draw_networkx_nodes(g, pos, nodelist=S_not, node_color="tab:blue")
     nx.draw_networkx_edges(g, pos)
