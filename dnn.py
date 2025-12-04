@@ -8,21 +8,32 @@ from networkx import Graph
 # who has published an implemntation of many dNN's on GitHub: 
 #       https://github.com/itsazibfarooq/dataless
 
-def heuristic(G):
+def heuristic(G: nx.Graph):
     n = G.number_of_nodes()
     theta = torch.zeros(n)
-    #deg = 
-    while n != 0:
-        pass
+
+    while G.number_of_nodes() != 0:
+        greatest = (-1,-1)
+        for node in G.degree():
+            if node[1] > greatest[1]:
+                greatest = node
+
+        theta[greatest[0]] = 1
+        neighbors = []
+        for neigh in G.neighbors(greatest[0]):
+            neighbors.append(neigh)
+        for n in neighbors:
+            G.remove_node(n)
+        G.remove_node(greatest[0])
 
 class Hadamard(nn.Module):
     """
     Trainable theta layer, does element wise multiplication with input
     Theta is restricted to range [0, 1]
     """
-    def __init__(self, n):
+    def __init__(self, G: nx.Graph):
         super().__init__()
-        self.theta = nn.Parameter(torch.rand(n, 1) * (0.95 - 0.05) + 0.05, requires_grad=True)
+        self.theta = nn.Parameter(heuristic(G.copy()))
         self.min_theta = 0
         self.max_theta = 1
 
@@ -118,7 +129,7 @@ class MDS(nn.Module):
 
         # n x 1
         # e_0 hadamard theta
-        self.layer1 = Hadamard(self.n)
+        self.layer1 = Hadamard(self.G)
 
         # Mult by W^T and apply bias vec, probably need to fix parameters here
         # ( 2n x n ) @ ( n x 1 ) = 2n x 1
