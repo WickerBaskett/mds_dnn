@@ -26,7 +26,11 @@ g = nx.connected_caveman_graph(5, 5)
 
 n = g.number_of_nodes()
 
-device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
+device = (
+    torch.accelerator.current_accelerator().type
+    if torch.accelerator.is_available()
+    else "cpu"
+)
 model = MDS(g.copy()).to(device)
 
 ############################
