@@ -1,3 +1,8 @@
+# dnn.py
+# Elliott R. Lewandowski and Jonathan D. Brough
+# 2025-12-03
+# Pytorch implementation of MDS dNN with heuristic 
+# to generate initial theta
 import torch
 from torch import nn
 import networkx as nx
@@ -5,12 +10,23 @@ from networkx import Graph
 
 # Acknowledgments:
 # Implementation of this was heavily inspired by the work of itsazibfarooq 
-# who has published an implemntation of many dNN's on GitHub: 
+# who has published a implemntations for a number of dNN's on GitHub: 
 #       https://github.com/itsazibfarooq/dataless
 
-def heuristic(G: nx.Graph):
+
+def heuristic(G: Graph):
+    """
+    Repeatdly find node with highest degree, add it
+    to our solution set, and then remove it and its
+    neighbors from the graph until no nodes are left
+    
+    :param G: Input Graph
+    :type G: Graph
+    :return: Theta tensor representing solution set
+    :rtype: torch.Tensor
+    """
     n = G.number_of_nodes()
-    theta = torch.zeros(n)
+    theta = torch.zeros(n, 1)
 
     while G.number_of_nodes() != 0:
         greatest = (-1,-1)
@@ -25,6 +41,7 @@ def heuristic(G: nx.Graph):
         for n in neighbors:
             G.remove_node(n)
         G.remove_node(greatest[0])
+    return theta
 
 class Hadamard(nn.Module):
     """
@@ -66,7 +83,6 @@ class Weight_Vec(nn.Module):
     def forward(self, x):
         return self.w @ x
 
-### dNN for the MDDS problem, accepts a graph as an adjacency list
 class MDS(nn.Module):
     """
     Implemntation of a dataless neural network to solve
@@ -131,9 +147,9 @@ class MDS(nn.Module):
         # e_0 hadamard theta
         self.layer1 = Hadamard(self.G)
 
-        # Mult by W^T and apply bias vec, probably need to fix parameters here
+        # Mult by W^T and apply bias vec
         # ( 2n x n ) @ ( n x 1 ) = 2n x 1
-        # W^T * layer1 + b
+        # W^T @ layer1 + b
         self.layer2 = Binary_Matrix(self.W, self.b)
 
         # Apply ReLu
@@ -145,14 +161,9 @@ class MDS(nn.Module):
         self.layer4 = Weight_Vec(self.w)
 
     def forward(self, x):
-        #print("\n\n******************\n")
         x = self.layer1(x)
-        #print("Hadamard: " + str(x))
         x = self.layer2(x)
-        #print("Binary Matrix: " + str(x))
         x = self.layer3(x)
-        #print("ReLU: " + str(x))
         x = self.layer4(x)
-        #print("Weight Vec: " + str(x))
         return x
 
